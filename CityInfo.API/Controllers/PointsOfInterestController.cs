@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CityInfo.API.Models;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,12 @@ namespace CityInfo.API.Controllers
             }
 
             return Ok(pointOfInterest);
+        }
+
+        [HttpPut("{cityId}/pointsofinterest")]
+        public IActionResult CreatePointOfInterest (int cityId, PointOfInterestForCreationDto pointOfInterest)
+        {
+
         }
 
     }

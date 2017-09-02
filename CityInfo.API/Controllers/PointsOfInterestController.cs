@@ -23,7 +23,7 @@ namespace CityInfo.API.Controllers
             return Ok(city.PointsOfInterest);
         }
 
-        [HttpGet("{cityId}/pointsofinterest/{id}")]
+        [HttpGet("{cityId}/pointsofinterest/{id}", Name = "GetPointOfInterest")]
         public IActionResult GetPointOfInterest(int cityId, int id)
         {
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
@@ -42,11 +42,53 @@ namespace CityInfo.API.Controllers
             return Ok(pointOfInterest);
         }
 
-        [HttpPut("{cityId}/pointsofinterest")]
-        public IActionResult CreatePointOfInterest (int cityId, PointOfInterestForCreationDto pointOfInterest)
+        [HttpPost("{cityId}/pointsofinterest")]
+        public IActionResult CreatePointOfInterest (int cityId, [FromBody] PointOfInterestForCreationDto pointOfInterest)
         {
+            // Check if the body of the request cannot be deserialized
+            // Need to leave this becauase ModelState is valid if null
+            if (pointOfInterest == null)
+            {
+                return BadRequest();
+            }
 
+            if(pointOfInterest.Name == pointOfInterest.Description)
+            {
+                ModelState.AddModelError("Description", "The description should be different than the name.");
+            }
+
+            // Check if the rules (annotations) for the model are valid
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Note: it is noted in the course that this is not really the ideal way to handle validation
+            // mixing and matching and even that there should be a better seperation of concerns here.
+            // consider github.com/jeremyskinner/fluentvalidation
+
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
+
+            if (city == null)
+            {
+                return NotFound();
+            }
+
+            var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
+
+            var finalPointOfInterest = new PointOfInterestDto()
+            {
+                Id = ++maxPointOfInterestId,
+                Name = pointOfInterest.Name,
+                Description = pointOfInterest.Description
+            };
+
+            city.PointsOfInterest.Add(finalPointOfInterest);
+
+            return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, id = finalPointOfInterest.Id }, finalPointOfInterest);
         }
+
+
 
     }
 }

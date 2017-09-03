@@ -1,4 +1,5 @@
 ﻿using CityInfo.API.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -122,9 +123,57 @@ namespace CityInfo.API.Controllers
             pointOfInterestFromStore.Description = pointOfInterest.Description;
 
             return NoContent();
-
-
         }
 
+        [HttpPatch("{cityId}/pointsofinterest/{id}")]
+        public IActionResult PartiallyUpdatePointOfInterest (int cityId, int id, [FromBody] JsonPatchDocument<PointOfInterestForUpdateDto> patchDoc)
+        {
+            if(patchDoc == null)
+            {
+                return BadRequest();
+            }
+
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
+            if (city == null)
+            {
+                return NotFound();
+            }
+
+            var pointOfInterestFromStore = city.PointsOfInterest.FirstOrDefault(n => n.Id == id);
+            if (pointOfInterestFromStore == null)
+            {
+                return NotFound();
+            }
+
+            var pointOfInterestToPatch = new PointOfInterestForUpdateDto()
+            {
+                Name = pointOfInterestFromStore.Name,
+                Description = pointOfInterestFromStore.Description
+            };
+
+            patchDoc.ApplyTo(pointOfInterestToPatch, ModelState);
+
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (pointOfInterestToPatch.Name == pointOfInterestToPatch.Description)
+            {
+                ModelState.AddModelError("Description", "The description should be different than the name.");
+            }
+
+            TryValidateModel(pointOfInterestToPatch);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            pointOfInterestFromStore.Name = pointOfInterestToPatch.Name;
+            pointOfInterestFromStore.Description = pointOfInterestToPatch.Description;
+
+            return NoContent();
+        }
     }
 }

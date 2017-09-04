@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using NLog.Extensions.Logging;
+using CityInfo.API.Services;
 
 namespace CityInfo.API
 {
@@ -24,13 +25,20 @@ namespace CityInfo.API
                     new XmlDataContractSerializerOutputFormatter()
                     ));
 
-                //.AddJsonOptions(o => {
-                //    if (o.SerializerSettings.ContractResolver != null)
-                //    {
-                //        var castResolver = o.SerializerSettings.ContractResolver as DefaultContractResolver;
-                //        castResolver.NamingStrategy = null;
-                //    }
-                //});
+            //.AddJsonOptions(o => {
+            //    if (o.SerializerSettings.ContractResolver != null)
+            //    {
+            //        var castResolver = o.SerializerSettings.ContractResolver as DefaultContractResolver;
+            //        castResolver.NamingStrategy = null;
+            //    }
+            //});
+
+
+#if DEBUG
+            services.AddTransient<IMailService, LocalMailService>();
+#else
+            services.AddTransient<IMailService, CloudMailService>(); 
+#endif
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

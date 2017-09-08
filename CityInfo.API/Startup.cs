@@ -21,9 +21,11 @@ namespace CityInfo.API
 
         public Startup(IHostingEnvironment env)
         {
+            // it is important to add the JSON files in a particular order.  They overlay with the last one winning
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("applicationSettings.json", optional: false, reloadOnChange: true);
+                .AddJsonFile("applicationSettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"applicationSettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             Configuration = builder.Build();
         }

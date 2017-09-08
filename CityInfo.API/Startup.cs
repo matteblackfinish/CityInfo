@@ -33,7 +33,7 @@ namespace CityInfo.API
             //    }
             //});
 
-
+            //Select/add a different IMailService based on which compile environment we are using... great way to mock a service while in Debug
 #if DEBUG
             services.AddTransient<IMailService, LocalMailService>();
 #else
@@ -46,7 +46,7 @@ namespace CityInfo.API
         {
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
-            //loggerFactory.AddProvider(new NLog.Extensions.Logging.NLogLoggerProvider());
+            //loggerFactory.AddProvider(new NLog.Extensions.Logging.NLogLoggerProvider());      //the way to add NLog if there was not the following helper method
             loggerFactory.AddNLog();
 
             if (env.IsDevelopment())

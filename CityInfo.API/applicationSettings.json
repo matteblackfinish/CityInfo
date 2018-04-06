@@ -1,6 +1,9 @@
 ﻿{
   "mailSettings": {
     "mailToAddress": "developer@mycompany.com",
-    "mailFromAddress":  "noreply@mycompany.com"
+    "mailFromAddress": "noreply@mycompany.com"
+  },
+  "connectionStrings": {
+    "cityInfoDBConnectionString": "Server=(localdb)\\ProjectsV13;Database=CityInfoDB;Trusted_Connection=True;"
   }
 }

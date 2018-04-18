@@ -99,30 +99,14 @@ namespace CityInfo.API.Controllers
             // mixing and matching and even that there should be a better seperation of concerns here.
             // consider github.com/jeremyskinner/fluentvalidation
 
-            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
-
-            //if (city == null)
-            //{
-            //    return NotFound();
-            //}
-
             if (!_cityInfoRepository.CityExists(cityId))
             {
                 return NotFound();
             }
 
-            //var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
 
             var finalPointOfInterest = AutoMapper.Mapper.Map<Entities.PointOfInterest>(pointOfInterest);
 
-            //var finalPointOfInterest = new PointOfInterestDto()
-            //{
-            //    Id = ++maxPointOfInterestId,
-            //    Name = pointOfInterest.Name,
-            //    Description = pointOfInterest.Description
-            //};
-
-            //city.PointsOfInterest.Add(finalPointOfInterest);
 
             _cityInfoRepository.AddPointOfInterestForCity(cityId, finalPointOfInterest);
             if(!_cityInfoRepository.Save())
@@ -153,20 +137,22 @@ namespace CityInfo.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
-            if (city == null)
+            if(!_cityInfoRepository.CityExists(cityId))
             {
                 return NotFound();
             }
 
-            var pointOfInterestFromStore = city.PointsOfInterest.FirstOrDefault(n => n.Id == id);
-            if (pointOfInterestFromStore == null)
+            var pointOfInterestEntity = _cityInfoRepository.GetPointOfInterestForCity(cityId, id);
+            if (pointOfInterestEntity == null)
             {
                 return NotFound();
             }
 
-            pointOfInterestFromStore.Name = pointOfInterest.Name;
-            pointOfInterestFromStore.Description = pointOfInterest.Description;
+            AutoMapper.Mapper.Map(pointOfInterest, pointOfInterestEntity);
+            if(!_cityInfoRepository.Save())
+            {
+                return StatusCode(500, "An error was encountered while handling your request.");
+            }
 
             return NoContent();
         }

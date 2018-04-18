@@ -29,7 +29,6 @@ namespace CityInfo.API.Controllers
         {
             try
             {
-                //var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
 
                 if(!_cityInfoRepository.CityExists(cityId))
                 {
@@ -41,25 +40,9 @@ namespace CityInfo.API.Controllers
 
                 var pointsOfInterestForCityResults = AutoMapper.Mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfInterestForCity);
 
-                //var pointsOfInterestForCityResults = new List<PointOfInterestDto>();
-                //foreach(var poi in pointsOfInterestForCity)
-                //{
-                //    pointsOfInterestForCityResults.Add(new PointOfInterestDto()
-                //    {
-                //        Id = poi.Id,
-                //        Name = poi.Name,
-                //        Description = poi.Description
-                //    });
-                //}
 
                 return Ok(pointsOfInterestForCityResults);
 
-                //if (city == null)
-                //{
-                //    _logger.LogInformation($"City with id {cityId} was not found when accessing points of interest.");
-                //    return NotFound();
-                //}
-                //return Ok(city.PointsOfInterest);
             }
 
             catch (Exception ex)
@@ -86,30 +69,9 @@ namespace CityInfo.API.Controllers
             }
 
             var pointOfInterestResult = AutoMapper.Mapper.Map<PointOfInterestDto>(pointOfInterest);
-            //var pointOfInterestResult = new PointOfInterestDto()
-            //{
-            //    Id = pointOfInterest.Id,
-            //    Name = pointOfInterest.Name,
-            //    Description = pointOfInterest.Description
-            //};
+    
 
             return Ok(pointOfInterestResult);
-
-
-            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
-
-            //if (city == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //var pointOfInterest = city.PointsOfInterest.FirstOrDefault(n => n.Id == id);
-            //if (pointOfInterest == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //return Ok(pointOfInterest);
         }
 
         [HttpPost("{cityId}/pointsofinterest")]
@@ -137,25 +99,40 @@ namespace CityInfo.API.Controllers
             // mixing and matching and even that there should be a better seperation of concerns here.
             // consider github.com/jeremyskinner/fluentvalidation
 
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
+            //var city = CitiesDataStore.Current.Cities.FirstOrDefault(n => n.Id == cityId);
 
-            if (city == null)
+            //if (city == null)
+            //{
+            //    return NotFound();
+            //}
+
+            if (!_cityInfoRepository.CityExists(cityId))
             {
                 return NotFound();
             }
 
-            var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
+            //var maxPointOfInterestId = CitiesDataStore.Current.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
 
-            var finalPointOfInterest = new PointOfInterestDto()
+            var finalPointOfInterest = AutoMapper.Mapper.Map<Entities.PointOfInterest>(pointOfInterest);
+
+            //var finalPointOfInterest = new PointOfInterestDto()
+            //{
+            //    Id = ++maxPointOfInterestId,
+            //    Name = pointOfInterest.Name,
+            //    Description = pointOfInterest.Description
+            //};
+
+            //city.PointsOfInterest.Add(finalPointOfInterest);
+
+            _cityInfoRepository.AddPointOfInterestForCity(cityId, finalPointOfInterest);
+            if(!_cityInfoRepository.Save())
             {
-                Id = ++maxPointOfInterestId,
-                Name = pointOfInterest.Name,
-                Description = pointOfInterest.Description
-            };
+                return StatusCode(500, "A problem happened with handling your request.");
+            }
 
-            city.PointsOfInterest.Add(finalPointOfInterest);
+            var createdPointOfInterestToReturn = AutoMapper.Mapper.Map<Models.PointOfInterestDto>(finalPointOfInterest);
 
-            return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, id = finalPointOfInterest.Id }, finalPointOfInterest);
+            return CreatedAtRoute("GetPointOfInterest", new { cityId = cityId, id = createdPointOfInterestToReturn.Id }, createdPointOfInterestToReturn);
         }
 
         [HttpPut("{cityId}/pointsofinterest/{id}")]
